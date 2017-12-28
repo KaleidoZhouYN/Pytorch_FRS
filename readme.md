@@ -52,6 +52,15 @@ By the method,we can get a reduplication id list between:
 
 As the list is given automatically,so there might be some wrong pairs.
 
+by the way,we didn't use full of Ms 100K id and vggface2 9k id.
+the class that we use will be found here:
+
+Ms: [./de-duplication/class_map_MS](./de-duplication/class_map_MS) && [./de-duplication/class_map_MS20k](./de-duplication/class_map_MS20k)
+
+vggface2: [./de-duplication/class_map_vgg2](./de-duplication/class_map_MS20k)
+
+so if you want to get the whole reduplicative ids you need to apply this method on full ms&vgg2 dataset.
+
 ### <a name="3">3.Feature norm select</a>
 
 
