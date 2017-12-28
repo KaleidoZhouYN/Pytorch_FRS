@@ -1,0 +1,104 @@
+input:"data"
+input_dim:1
+input_dim:3
+input_dim:112
+input_dim:112
+######################################################
+layer {
+  name: "conva"
+  type: "Convolution"
+  bottom: "data"
+  top: "conva"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 32
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+######################  feature ########################
+layer {
+  name: "feature"
+  type: "InnerProduct"
+  bottom: "conva"
+  top: "fc5"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 512
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+##################### feature norm select ###############
+layer {
+  name:"normSelect"
+  type:"NormSelect"
+  bottom:"fc5"
+  top:"feature_ee"
+  top:"normlabel"
+  normselect_param{
+     threshold:5.0
+  }
+}  
+#################### feature normalize ##################
+layer {
+  name:"featurenorm"
+  type:"Normalize"
+  bottom:"feature_ee"
+  top:"feature_norm"
+}
+
+################### classification ######################
+layer {
+  name: "class"
+  type: "InnerProduct"
+  bottom: "feature_norm"
+  top: "fc6"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 20000
+    weight_filler {
+      type: "xavier"
+    }
+  }
+}
+
+################### get HEM #############################
+layer{
+   name:"HEM"
+   type:"Python"
+   bottom:"data"
+   bottom:"normlabel"
+   top:"HEM_data"
+}
+   
