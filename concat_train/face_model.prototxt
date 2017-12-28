@@ -1,0 +1,171 @@
+#########################input data#####################
+
+input: "data_MS"
+input_dim: 100
+input_dim: 3
+input_dim: 112
+input_dim: 112
+
+input:"data_VGG2"
+input_dim: 100
+input_dim: 3
+input_dim: 112
+input_dim: 112
+
+input:"label_MS"
+input_dim:100
+input_dim:1
+
+input:"label_VGG2"
+input_dim:100
+input_dim:1
+
+######################## data concat #################
+layer{
+   name:"data"
+   type:"Concat"
+   bottom:"data_MS"
+   bottom:"data_VGG2"
+   top:"data"
+   concat_param {
+	axis:0
+   }
+}  
+
+
+######################## CNN Architecture #############
+layer {
+  name: "conva"
+  type: "Convolution"
+  bottom: "data"
+  top: "conva"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 32
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+######################  feature ########################
+layer {
+  name: "feature"
+  type: "InnerProduct"
+  bottom: "conva"
+  top: "fc5"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 512
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+###################### feature slice #################
+layer{
+  name:"featureSlice"	
+  type:"Slice"
+  bottom:"fc5"
+  top:"feature_MS"
+  top:"feature_VGG2"
+  slice_param{
+    axis:0
+    slice_point:100
+  }
+}
+
+##################### softmax loss MS ##############
+layer {
+  name: "class_MS"
+  type: "InnerProduct"
+  bottom: "feature_MS"
+  top: "fc6_1"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 78892
+    weight_filler {
+      type: "xavier"
+    }
+  }
+}
+
+layer {
+  name: "softmax_loss_MS"
+  type: "SoftmaxWithLoss"
+  bottom: "fc6_1"
+  bottom: "label_MS"
+  top: "softmax_loss_MS"
+  loss_weight:0.5
+}
+
+layer {
+  name: "accuracy_MS"
+  type: "Accuracy"
+  bottom: "fc6_1"
+  bottom: "label_MS"
+  top: "accuracy_MS"
+}
+
+###################### softmax loss VGG2 ##########
+layer {
+  name: "class_VGG2"
+  type: "InnerProduct"
+  bottom: "feature_VGG2"
+  top: "fc6_2"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 8631
+    weight_filler {
+      type: "xavier"
+    }
+  }
+}
+
+layer {
+  name: "softmax_loss_VGG2"
+  type: "SoftmaxWithLoss"
+  bottom: "fc6_2"
+  bottom: "label_VGG2"
+  top: "softmax_loss_VGG2"
+  loss_weight:0.5
+}
+
+layer {
+  name: "accuracy_VGG2"
+  type: "Accuracy"
+  bottom: "fc6_2"
+  bottom: "label_VGG2"
+  top: "accuracy_VGG2"
+}

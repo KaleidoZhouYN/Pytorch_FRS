@@ -1,0 +1,173 @@
+################## Network for Easy sample ############
+
+input:"data_ee"
+input_dim:1
+input_dim:3
+input_dim:112
+input_dim:112
+
+input:"data_he"
+input_dim:100
+input_dim:3
+input_dim:112
+input_dim:112
+
+######################################################
+layer {
+  name: "conva"
+  type: "Convolution"
+  bottom: "data_ee"
+  top: "conva"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 32
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+######################  feature ########################
+layer {
+  name: "feature"
+  type: "InnerProduct"
+  bottom: "conva"
+  top: "fc5"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 512
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+##################### feature norm select ###############
+layer {
+  name:"normSelect"
+  type:"NormSelect"
+  bottom:"fc5"
+  top:"feature_ee"
+  top:"normlabel"
+  normselect_param{
+     threshold:5.0
+  }
+}  
+#################### feature normalize ##################
+layer {
+  name:"featurenorm"
+  type:"Normalize"
+  bottom:"feature_ee"
+  top:"feature_norm"
+}
+
+
+################### network for hard example ###########
+
+layer {
+  name: "convb"
+  type: "Convolution"
+  bottom: "data_he"
+  top: "convb"
+  param {
+    lr_mult: 1
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  convolution_param {
+    num_output: 32
+    kernel_size: 3
+    stride: 1
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+layer {
+  name: "feature_he"
+  type: "InnerProduct"
+  bottom: "convb"
+  top: "feature_he"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 2
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 512
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+################### feature elment wise ################
+layer{
+  name:"fc5_add"
+  type:"Eltwise"
+  bottom:"feature_norm"
+  bottom:"feature_he"
+  top:"feature_add"
+  eltwise_param { 
+    operation: 1
+  }
+}
+
+################### classification ######################
+layer {
+  name: "class"
+  type: "InnerProduct"
+  bottom: "feature_add"
+  top: "fc6"
+  param {
+    lr_mult: 1
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 20000
+    weight_filler {
+      type: "xavier"
+    }
+  }
+}
+
+   
