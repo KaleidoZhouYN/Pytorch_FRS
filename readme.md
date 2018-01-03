@@ -77,7 +77,7 @@ First let's see a picture in "L2-constrained Softmax Loss for Discriminative Fac
 
 ![](./feature-select/feature-norm-pic.png)
 
-which shows the l2-norm is linear with image quality.
+which shows the l2-norm is positive correlated with image quality.
 
 ------
 
